@@ -210,3 +210,7 @@ __marimo__/
 *.csv
 mlruns/
 mlflow.db
+*.pkl
+*.csv
+mlruns/
+mlflow.db
