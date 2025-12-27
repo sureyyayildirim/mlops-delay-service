@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 
+
 def apply_feature_engineering(df):
     """
     Kişi 2 tarafından hazırlanan özellik mühendisliği adımı.
@@ -13,4 +14,3 @@ def apply_feature_engineering(df):
         ).astype(int)
         print("[Kişi 2] Problem Reframing: Age Bucketized.")
     return df
-    

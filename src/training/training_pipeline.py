@@ -2,8 +2,9 @@ import os
 import sys
 import pandas as pd
 import matplotlib
+
 # KRİTİK: GUI olmayan sunucularda (GitHub Actions) hata almamak için Agg backend kullanıyoruz
-matplotlib.use('Agg')
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import joblib
 import mlflow
@@ -97,4 +98,5 @@ with mlflow.start_run(run_name="Full_MLOps_Pipeline_Flow"):
     print("=" * 90)
 
     # 7. VISUALIZATION (Headless CI/CD Uyumluluğu)
-    metrics_list = ["Accuracy
+# Doğru yazım bu şekilde olmalı:
+metrics_list = ["Accuracy", "Precision", "Recall", "F1_Score", "AUC_ROC"]
