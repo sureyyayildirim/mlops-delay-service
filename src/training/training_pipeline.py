@@ -31,7 +31,7 @@ with mlflow.start_run(run_name="Full_MLOps_Pipeline_Flow"):
     # 1. VERİ HAZIRLIĞI
     data_file = os.path.join(BASE_DIR, 'processed_adv_data.csv')
     df = pd.read_csv(data_file)
-    df = apply_feature_engineering(df) # Age Bucketizing
+    df = apply_feature_engineering(df)
 
     # 2. SPLIT (80/10/10)
     X = df.drop('Clicked on Ad', axis=1)
@@ -45,13 +45,13 @@ with mlflow.start_run(run_name="Full_MLOps_Pipeline_Flow"):
     X_train_res = upsampled_train.drop('Clicked on Ad', axis=1)
     y_train_res = upsampled_train['Clicked on Ad']
 
-    # 4. BEFORE vs AFTER
+    # 4. BEFORE vs AFTER Analizi
     run_before_after_comparison(X_train, y_train, X_train_res, y_train_res, X_test, y_test)
 
-    # Nested Run
+    # 5. EĞİTİM (Nested Run)
     rf, xgb, ensemble = train_full_pipeline(X_train_res, y_train_res, X_val, y_val, X_test, y_test)
 
-    # 6. PERFORMANCE TABLE
+    # 6. PERFORMANCE TABLE (Metrik Düzenlemeleri Dahil)
     results = []
     models_dict = {"Bagging (RF)": rf, "Boosting (XGB)": xgb, "Ensemble (Voting)": ensemble}
 
@@ -63,8 +63,8 @@ with mlflow.start_run(run_name="Full_MLOps_Pipeline_Flow"):
             "Accuracy": round(accuracy_score(y_test, p), 2),
             "Precision": round(precision_score(y_test, p), 6),
             "Recall": round(recall_score(y_test, p), 2),
-            "F1 Score": round(f1_score(y_test, p), 6),
-            "AUC-ROC": round(roc_auc_score(y_test, pr), 4)
+            "F1_Score": round(f1_score(y_test, p), 6), # Alt tire
+            "AUC_ROC": round(roc_auc_score(y_test, pr), 4) # Alt tire
         })
 
     results_df = pd.DataFrame(results)
@@ -74,17 +74,25 @@ with mlflow.start_run(run_name="Full_MLOps_Pipeline_Flow"):
     print(results_df.to_string(index=False, justify='right'))
     print("=" * 90)
 
-    # Visualization
-    metrics_list = ["Accuracy", "Precision", "Recall", "F1 Score", "AUC-ROC"]
+    # 7. VISUALIZATION (Headless CI/CD Uyumluluğu)
+    metrics_list = ["Accuracy", "Precision", "Recall", "F1_Score", "AUC_ROC"]
     colors = ['skyblue', 'salmon', 'lightgreen', 'orange', 'plum']
+    
     for i, metric in enumerate(metrics_list):
         plt.figure(figsize=(8, 5))
         plt.bar(results_df['Model'], results_df[metric], color=colors[i], width=0.6)
         plt.title(f'Metric Comparison: {metric}')
         plt.ylim(0.7, 1.05)
-        plt.show()
+        
+        # plt.show() yerine kaydet ve MLflow'a gönder
+        plot_path = f"metric_{metric.lower()}.png"
+        plt.savefig(plot_path)
+        mlflow.log_artifact(plot_path)
+        plt.close() # Bellek temizliği
 
-    # 8. MODEL KAYDI
+    # 8. MODEL KAYDI VE ARTIFACT TESLİMATI
     save_path = os.path.join(BASE_DIR, "final_deployment_model.pkl")
     joblib.dump(ensemble, save_path)
-    print(f"\nSüreç tamamlandı. Model: {save_path}")
+    mlflow.log_artifact(save_path) # Deployment dosyasını MLflow'a ekle
+    
+    print(f"\nSüreç tamamlandı. Model ve Grafikler MLflow'a işlendi. Kayıt Yolu: {save_path}")
